@@ -56,9 +56,19 @@ python3 scripts/china_check.py https://example.cn/zh/ --json report.json
 ```
 
 It reports the redirect chain, render-blocking resources on blocked hosts, the full
-external-host inventory, reCAPTCHA in the form path, analytics coverage, cache
-headers, the Chinese font stack and on-page ICP filing. Exit code 1 means a
-blocking problem was found.
+external-host inventory, captchas gating the form path (reCAPTCHA, hCaptcha,
+Cloudflare Turnstile), consent and chat widgets, analytics coverage, cache headers,
+the Chinese font stack and on-page ICP filing. Exit code 1 means a blocking problem
+was found.
+
+Rank what it returns by commercial damage, not by count:
+
+1. **A captcha in the form path** — the form silently never sends. The page looks
+   perfect and the buyer cannot reach you. This outranks every speed finding.
+2. **Render-blocking resources in `<head>` from blocked hosts** — a 30–60 s white
+   screen, or an instant load with broken fonts, depending on the province.
+3. **Consent and chat widgets** — slow to load *and* consuming first-screen area
+   that Baidu measures.
 
 Then establish what a mainland network actually did, with BOCE or ITDOG against the
 **exact** target URL. Preserve the report URL, timestamp with timezone, final
@@ -88,21 +98,59 @@ Traps that have produced wrong conclusions on real audits:
 
 Do not bypass access controls, and do not submit test leads without authorization.
 
-## Phase 2 — Baidu search visibility
+## Phase 2 — Technical and on-page audit
+
+Read [references/technical-onpage.md](references/technical-onpage.md).
+
+The universal technical layer, in Baidu's terms. Most of it transfers from Western
+practice — but some standard Google advice is actively wrong here, and Baidu
+publishes rules with no Google equivalent.
+
+What differs most, and is most often got wrong:
+
+- **Speed is a published ranking rule.** 闪电算法 (2017-10-19): mobile first screen
+  under 2 s gets preference, 3 s or more is suppressed. The metric is first-screen
+  time, not LCP/INP/CLS, and a Lighthouse run from abroad does not measure it.
+- **Schema.org does not produce Baidu rich results.** Do not port the Google
+  structured-data checklist or its deprecation list. Baidu uses its own submission
+  formats and the closed 阿拉丁 program, which is realistically out of scope for a
+  foreign B2B brand.
+- **Baidu's quality framework is not E-E-A-T.** It grades 内容质量 on professional
+  depth and completeness, plus browsing experience and accessibility. Author
+  identity is not the organising principle.
+- **The title must align with the ICP registration**, not just the page — a
+  Baidu-specific check with no Google analogue. Baidu rewrites over-optimised
+  titles and restricts display for severe cases.
+- **Chinese advertising law restricts superlatives** (最好, 第一, 国家级). That is a
+  legal exposure finding in Chinese copy, not a style note.
+- **The mobile landing-page whitepaper is prescriptive**: first screen within 1 s,
+  main content ≥50% of the first screen, font ≥10pt. Consent banners and chat
+  widgets routinely breach the 50% rule.
+- **Test in the WeChat in-app browser**, not just mobile Chrome — it is where much
+  of the real traffic renders, and it breaks things Chrome does not.
+- **Never recommend MIP or 熊掌号.** Both are discontinued; MIP is still
+  recommended inside Baidu's own 2017 announcement. Finding either in a client's
+  existing plan tells you how current that plan is.
+
+## Phase 3 — Baidu search visibility
 
 Read [references/baidu-search.md](references/baidu-search.md).
 
 Baidu is not Google with Chinese results. It ignores hreflang entirely, reads
-`content-language` plus the domain as the language signal, executes **no**
-JavaScript, penalises slow first screens by published algorithm, wastes crawl
+`content-language` plus the domain as the language signal, handles JavaScript
+unreliably, penalises slow first screens by published algorithm, wastes crawl
 budget on non-Chinese pages, and fails on language-in-URL parameters.
+
+Audit beyond Baidu where the evidence justifies it — Bing has material desktop
+presence in China and is the index behind ChatGPT, and Sogou matters
+disproportionately for brands distributing through WeChat.
 
 Use authenticated Baidu Search Resource Platform (ziyuan) exports for owner-side
 crawl and index evidence where available. Record desktop and mobile SERPs
 separately, and keep SEM strictly separate from organic. A `site:` observation
 alone establishes neither complete index coverage nor absence.
 
-## Phase 3 — Chinese AI visibility
+## Phase 4 — Chinese AI visibility
 
 Read [references/ai-visibility.md](references/ai-visibility.md) for the full
 protocol, the prompt panel design and the metric definitions.
@@ -128,7 +176,7 @@ An initial panel of 30 prompts × 3 platforms × 3 fresh sessions (270 completed
 answers) is a **workload convention**, not a statistical minimum. Failed and
 pending runs do not count toward the denominator.
 
-## Phase 4 — Platform and content
+## Phase 5 — Platform and content
 
 Map native Chinese buyer intent to useful destination pages: division identity,
 supplier capability, technical selection, specifications with units and methods,
@@ -144,7 +192,7 @@ Do **not** prescribe bulk articles, thin city pages, a fixed keyword density, a
 standard Baike/WeChat/Zhihu recipe, or guaranteed AI citations. City pages need
 genuine local information; never invent an office.
 
-## Phase 5 — Commercial validation
+## Phase 6 — Commercial validation
 
 Track inquiry starts, confirmed deliveries, qualified leads, sample discussions and
 opportunities. Never substitute click totals for commercial success. Show a form

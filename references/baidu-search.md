@@ -10,7 +10,7 @@ recommend, not just how you phrase it.
 | hreflang | supported | **ignored entirely** |
 | Language signal | hreflang | **`content-language` meta + separate domain** |
 | canonical | supported | supported |
-| JavaScript | rendered | **not executed at all** |
+| JavaScript | rendered | render crawler exists (`Baiduspider-render/2.0`), but handling is unreliable — server-render critical content. See [technical-onpage.md](technical-onpage.md) |
 | Speed | ranking factor | **<2 s preferred; ≥3 s actively suppressed** (闪电算法, Lightning Algorithm) |
 | Multilingual sites | handled well | crawl budget wasted on non-Chinese pages |
 | Language in URL parameters | tolerated | **causes crawl failures** |
@@ -21,8 +21,11 @@ Consequences worth stating plainly in a report:
 - A slow first screen is a **ranking penalty under published Baidu documentation**,
   not only a UX complaint. Under 2 s gets preference and more impressions; 2–3 s is
   neutral; 3 s and above is suppressed.
-- Client-side-rendered content is invisible to Baidu. Confirm what is in the raw
-  HTML before concluding anything about content coverage.
+- Client-side-rendered content is at risk on Baidu. A render crawler exists, but
+  its handling is unreliable in practice, so critical content belongs in the
+  server-rendered HTML. Settle it for the specific site with Baidu's 抓取诊断
+  (crawl diagnosis) tool, which shows what the crawler actually received, and
+  confirm what is in the raw HTML before concluding anything about coverage.
 - An hreflang set that is correct for Google is harmless but inert for Baidu. The
   missing `content-language` meta is the real gap.
 - A sitemap listing the wrong domain's URLs (a common CMS default on dual-domain

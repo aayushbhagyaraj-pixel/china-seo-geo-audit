@@ -59,6 +59,25 @@ BLOCKED = {
     "dropbox.com": "Dropbox", "wordpress.org": "WordPress.org",
     "gravatar.com": "Gravatar", "secure.gravatar.com": "Gravatar",
     "whatsapp.com": "WhatsApp", "t.me": "Telegram",
+    # Further Google / Meta / X properties
+    "googleusercontent.com": "Google user content",
+    "withgoogle.com": "Google",
+    "ytimg.com": "YouTube (images)",
+    "fbcdn.net": "Facebook CDN",
+    "cdninstagram.com": "Instagram CDN",
+    "x.com": "Twitter/X", "twimg.com": "Twitter/X (assets)",
+    # Captcha services that gate form submission
+    "hcaptcha.com": "hCaptcha - gates form submit",
+    "newassets.hcaptcha.com": "hCaptcha assets",
+    # Reference and community sources
+    "wikipedia.org": "Wikipedia", "wikimedia.org": "Wikimedia",
+    "reddit.com": "Reddit", "redd.it": "Reddit",
+    "medium.com": "Medium", "quora.com": "Quora",
+    "blogspot.com": "Blogspot", "blogger.com": "Blogger",
+    # Workplace / SaaS surfaces
+    "slack.com": "Slack", "notion.so": "Notion",
+    "figma.com": "Figma", "discord.com": "Discord",
+    "twitch.tv": "Twitch", "soundcloud.com": "SoundCloud",
 }
 
 # Reachable but slow / unreliable - no China PoP, or heavily throttled.
@@ -77,6 +96,38 @@ SLOW = {
     "s3.amazonaws.com": "AWS S3 US - high latency",
     "raw.githubusercontent.com": "GitHub raw - blocked intermittently",
     "github.com": "GitHub - throttled",
+    # Bot challenge - can gate form submit
+    "challenges.cloudflare.com": "Cloudflare Turnstile - can gate form submit",
+    # Consent banners: render-blocking AND eat first-screen area
+    "cdn.cookielaw.org": "OneTrust consent - no China PoP",
+    "onetrust.com": "OneTrust consent - no China PoP",
+    "consent.cookiebot.com": "Cookiebot consent - no China PoP",
+    "cdn.iubenda.com": "Iubenda consent - no China PoP",
+    # Chat / support widgets
+    "widget.intercom.io": "Intercom chat - no China PoP",
+    "js.intercomcdn.com": "Intercom assets - no China PoP",
+    "static.zdassets.com": "Zendesk chat - no China PoP",
+    "js.driftt.com": "Drift chat - no China PoP",
+    "js.hs-scripts.com": "HubSpot - no China PoP",
+    "js.hsforms.net": "HubSpot forms - no China PoP",
+    "embed.tawk.to": "Tawk.to chat - no China PoP",
+    # Product analytics / session replay
+    "cdn.segment.com": "Segment - no China PoP",
+    "static.hotjar.com": "Hotjar - no China PoP",
+    "edge.fullstory.com": "FullStory - no China PoP",
+    "cdn.mxpnl.com": "Mixpanel - no China PoP",
+    "cdn.amplitude.com": "Amplitude - no China PoP",
+    "browser.sentry-cdn.com": "Sentry - no China PoP",
+    # Scheduling / forms / payments / auth
+    "assets.calendly.com": "Calendly - no China PoP",
+    "embed.typeform.com": "Typeform - no China PoP",
+    "js.stripe.com": "Stripe - no China PoP, checkout may stall",
+    "cdn.auth0.com": "Auth0 - no China PoP",
+    # Generic edge platforms without mainland nodes
+    "cloudfront.net": "AWS CloudFront - no mainland PoP by default",
+    "akamaihd.net": "Akamai - mainland presence ended 2026-06-30",
+    "akamaized.net": "Akamai - mainland presence ended 2026-06-30",
+    "vercel.app": "Vercel - no mainland PoP",
 }
 
 CN_SOCIAL = ("weibo.com", "weixin.qq.com", "xiaohongshu.com", "douyin.com",
@@ -235,6 +286,24 @@ def analyse(url, timeout=30):
         "hosts": hosts,
         "blocking_findings": findings,
         "has_recaptcha": "grecaptcha" in low or "recaptcha" in low,
+        "captchas": sorted({label for sig, label in (
+            ("grecaptcha", "Google reCAPTCHA"),
+            ("recaptcha", "Google reCAPTCHA"),
+            ("hcaptcha", "hCaptcha"),
+            ("cf-turnstile", "Cloudflare Turnstile"),
+            ("challenges.cloudflare.com", "Cloudflare Turnstile"),
+        ) if sig in low}),
+        "widgets": sorted({label for sig, label in (
+            ("onetrust", "OneTrust consent banner"),
+            ("cookielaw.org", "OneTrust consent banner"),
+            ("cookiebot", "Cookiebot consent banner"),
+            ("iubenda", "Iubenda consent banner"),
+            ("intercom", "Intercom chat"),
+            ("zdassets", "Zendesk chat"),
+            ("driftt", "Drift chat"),
+            ("hs-scripts", "HubSpot"),
+            ("tawk.to", "Tawk.to chat"),
+        ) if sig in low}),
         "has_cn_analytics": any(a in low for a in CN_ANALYTICS),
         "has_ga": "googletagmanager" in low or "google-analytics" in low,
         "cn_social": sorted({s for s in CN_SOCIAL if s in low}),
@@ -333,15 +402,25 @@ def report(r, color=True):
     # 4. Forms
     A(f"\n{c['bold']}4. FORM SUBMISSION{c['off']}")
     maxs += 1
-    if r["has_recaptcha"]:
-        A(f"  {c['red']}FAIL  Google reCAPTCHA detected.{c['off']}")
-        A(f"        reCAPTCHA needs a token from google.com before a form will")
+    if r.get("captchas"):
+        for cap in r["captchas"]:
+            A(f"  {c['red']}FAIL  {cap} detected.{c['off']}")
+        A(f"        A captcha needs a token from its own host before a form will")
         A(f"        submit. From China that request fails, so enquiries cannot")
         A(f"        be sent at all - this does not go away once the page loads.")
         A(f"        {c['dim']}Fix: Geetest, Tencent Captcha, or a honeypot field.{c['off']}")
     else:
-        A(f"  {c['grn']}PASS  No reCAPTCHA detected.{c['off']}")
+        A(f"  {c['grn']}PASS  No blocking captcha detected.{c['off']}")
         score += 1
+
+    if r.get("widgets"):
+        A(f"\n{c['bold']}4b. CONSENT / CHAT WIDGETS{c['off']}")
+        for w in r["widgets"]:
+            A(f"  {c['yel']}WARN  {w}.{c['off']}")
+        A(f"        These load from hosts with no mainland PoP, and they occupy")
+        A(f"        first-screen area. Baidu's landing page whitepaper requires")
+        A(f"        main content to fill 50%+ of the first screen on mobile.")
+        A(f"        {c['dim']}Check the first screen as rendered on a mainland device.{c['off']}")
 
     # 5. Analytics
     A(f"\n{c['bold']}5. ANALYTICS COVERAGE{c['off']}")

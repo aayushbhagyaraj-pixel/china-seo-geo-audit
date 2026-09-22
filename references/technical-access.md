@@ -60,13 +60,18 @@ It checks:
 2. **Render-blocking resources from blocked hosts** — scripts and stylesheets in
    `<head>`. These cause the white screen.
 3. **All external hosts** — full inventory split into blocked and slow/unreliable.
-4. **Form submission** — detects Google reCAPTCHA. reCAPTCHA must reach
-   `google.com` *before the form will send*, so enquiries fail permanently from
-   China even after the page finishes loading. Commercially this usually outranks
-   the speed findings.
-5. **Analytics coverage** — flags a site running only GA/GTM with no Baidu Tongji:
+4. **Form submission** — detects Google reCAPTCHA, hCaptcha and Cloudflare
+   Turnstile. A captcha must fetch a token from its own host *before the form will
+   send*, so enquiries fail permanently from China even after the page has finished
+   loading. Commercially this usually outranks every speed finding: the page looks
+   fine and the buyer still cannot reach you.
+5. **Consent and chat widgets** — OneTrust, Cookiebot, Iubenda, Intercom, Zendesk,
+   Drift, HubSpot, Tawk.to. Two problems at once: they load from hosts with no
+   mainland presence, and they occupy first-screen area, which runs into Baidu's
+   requirement that main content fill 50%+ of the mobile first screen.
+6. **Analytics coverage** — flags a site running only GA/GTM with no Baidu Tongji:
    Chinese traffic is invisible, so neither the problem nor the fix is measurable.
-6. **Secondary** — cache headers, Chinese font stack, on-page ICP filing, Chinese
+7. **Secondary** — cache headers, Chinese font stack, on-page ICP filing, Chinese
    social presence.
 
 Reading the result:
@@ -81,17 +86,42 @@ matters more than four warnings.
 
 ## Commonly blocked hosts
 
-Google (search, Fonts, hosted libraries, Tag Manager, Analytics, APIs, gstatic,
-DoubleClick, AdSense), reCAPTCHA, Facebook (+ SDK), Twitter/X, YouTube, Instagram,
-LinkedIn, Pinterest, Vimeo, Dropbox, WordPress.org, Gravatar, WhatsApp, Telegram.
+**Blocked** — Google in all its forms (search, Fonts, hosted libraries, Tag
+Manager, Analytics, APIs, gstatic, googleusercontent, DoubleClick, AdSense),
+reCAPTCHA, **hCaptcha**, Meta (Facebook, SDK, fbcdn, Instagram, cdninstagram),
+Twitter/X (including x.com and twimg), YouTube (including ytimg), LinkedIn,
+Pinterest, Vimeo, Dropbox, WordPress.org, Gravatar, WhatsApp, Telegram, Wikipedia
+and Wikimedia, Reddit, Medium, Quora, Blogspot/Blogger, Slack, Notion, Figma,
+Discord, Twitch, SoundCloud.
 
-Reachable but slow or unreliable: cdnjs.cloudflare.com, cdn.jsdelivr.net,
-unpkg.com, Adobe Typekit, Font Awesome CDN, code.jquery.com, BootstrapCDN,
-BootCSS, S3 US regions, raw.githubusercontent.com, github.com.
+**Slow or unreliable** — cdnjs.cloudflare.com, cdn.jsdelivr.net, unpkg.com, Adobe
+Typekit, Font Awesome CDN, code.jquery.com, BootstrapCDN, BootCSS, S3 US regions,
+raw.githubusercontent.com, github.com, **Cloudflare Turnstile**
+(challenges.cloudflare.com), consent platforms (OneTrust/cookielaw, Cookiebot,
+Iubenda), chat and support widgets (Intercom, Zendesk, Drift, HubSpot, Tawk.to),
+product analytics and session replay (Segment, Hotjar, FullStory, Mixpanel,
+Amplitude, Sentry), scheduling and forms (Calendly, Typeform), Stripe, Auth0, and
+edge platforms without mainland nodes (CloudFront by default, Akamai — mainland
+presence reported ended 2026-06-30 — Vercel).
 
-The tool holds the current table and matches subdomains by suffix. Treat the list
-as a starting point — verify anything unusual against fresh network evidence rather
-than asserting it.
+The three categories that matter most, in order of commercial damage:
+
+| Category | Why it ranks here |
+|---|---|
+| **Captcha in the form path** | The form silently never sends. The page looks perfect. Permanent lost enquiries |
+| **Render-blocking in `<head>`** | 30–60 s white screen, or an instant load with broken fonts — depending on province |
+| **Consent / chat widgets** | Load slowly *and* consume the first screen, which Baidu measures |
+
+The tool holds the current table and matches subdomains by suffix. Treat it as a
+starting point that needs periodic refresh, not a settled list — providers change
+their mainland arrangements, and any specific claim here (including the Akamai
+date) should be confirmed fresh before it enters a deliverable.
+
+Chinese replacements to recommend in place of blocked services: **Geetest** or
+**Tencent Captcha** for reCAPTCHA/hCaptcha, **Baidu Tongji** or a tested
+alternative for GA, self-hosted fonts for Google Fonts, and a mainland or Hong Kong
+CDN for asset delivery. Prove the actual failure with network evidence before
+prescribing the swap.
 
 ## Mainland network testing
 
@@ -147,7 +177,8 @@ visitors get the redirect. Giving an agency this one instruction prevents most
 4. **No blocked foreign resources** — Google Fonts, Google Analytics, GTM, Facebook
    pixels, reCAPTCHA.
 5. **First screen under 2 s on mobile.**
-6. **Server-rendered HTML** — Baidu runs no JavaScript.
+6. **Server-rendered HTML for critical content** — Baidu's JavaScript handling is
+   unreliable even though a render crawler exists.
 7. **Simplified Chinese** titles, descriptions, content.
 8. **Sitemap listing the `.cn` Chinese URLs**, submitted via Baidu Search Resource
    Platform.

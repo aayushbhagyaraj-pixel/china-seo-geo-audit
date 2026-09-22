@@ -15,7 +15,8 @@ establishes the next one.
 | Area | Includes |
 |---|---|
 | **Mainland reachability** | Great Firewall blocking modes, blocked third-party resources, redirect chains, CDN/DNS, ICP filing, reCAPTCHA breaking form submission, analytics blind spots |
-| **Baidu search visibility** | Baidu vs Google behavioural differences, Lightning Algorithm (闪电算法), Baidu Search Resource Platform, the seven Chinese crawlers including Bytespider |
+| **Technical & on-page** | Baidu's published rules — 闪电算法 speed thresholds, title specification, landing-page whitepaper, page quality standard — plus why Schema.org, E-E-A-T and Core Web Vitals do not port |
+| **Baidu search visibility** | Baidu vs Google behavioural differences, Baidu Search Resource Platform, the seven Chinese crawlers including Bytespider, and auditing beyond Baidu |
 | **Chinese AI visibility** | DeepSeek, Qwen/Tongyi, ERNIE/Wenxin, Doubao, Kimi, Yuanbao — isolation protocol, prompt panel design, metric definitions with declared denominators |
 | **Commercial visibility** | Inquiry delivery, qualified leads, SEM sheet handling, what click data cannot tell you |
 
@@ -43,8 +44,14 @@ Python 3.7+, standard library only. Exit code 1 if a blocking problem was found,
 it drops into CI or a deploy gate.
 
 It checks the redirect chain, render-blocking resources on blocked hosts, the full
-external-host inventory, reCAPTCHA in the form path, analytics coverage, cache
-headers, the Chinese font stack and on-page ICP filing.
+external-host inventory, captchas gating the form path (reCAPTCHA, hCaptcha,
+Cloudflare Turnstile), consent and chat widgets, analytics coverage, cache headers,
+the Chinese font stack and on-page ICP filing.
+
+The finding that usually matters most is the captcha one. A captcha must fetch a
+token from its own host *before a form will send*, so from China the enquiry fails
+permanently — even after the page has loaded perfectly. A site can look completely
+healthy and be unable to receive a single lead.
 
 ## Why testing from one location proves very little
 
@@ -67,6 +74,7 @@ origin.
 ```
 SKILL.md                             Phases, outcomes, the rules that get broken most
 references/technical-access.md       Reachability testing, blocked hosts, architecture grid
+references/technical-onpage.md       Baidu's published technical and on-page rules
 references/baidu-search.md           Baidu behaviour, owner-side evidence, crawlers
 references/ai-visibility.md          AI measurement protocol, prompt panel, metrics
 references/evidence-discipline.md    Claim labels, source hierarchy, denominators
