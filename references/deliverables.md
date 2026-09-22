@@ -65,9 +65,9 @@ Where the deliverable is English-facing but the evidence is Chinese, put an Engl
 translation beside every Chinese prompt, query, term and quoted excerpt. Keep the
 raw Chinese snapshots unmodified in the evidence appendix.
 
-## Artifacts
+## Format
 
-Use the presentation and document skills available in the session for the artifact
-itself — decks, reports, spreadsheets. Keep the evidence companion as a separate
-document when a client fixes the slide structure, so findings that do not fit the
-template are not lost.
+This skill produces the audit: findings, evidence, priorities and the
+remaining-data list. The format of the client artifact is decided outside it.
+Whatever the format, keep the evidence companion as a separate document so that
+findings which do not fit a fixed template are not lost.

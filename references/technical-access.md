@@ -59,30 +59,42 @@ It checks:
    China site can have.
 2. **Render-blocking resources from blocked hosts** — scripts and stylesheets in
    `<head>`. These cause the white screen.
-3. **All external hosts** — full inventory split into blocked and slow/unreliable.
-4. **Form submission** — detects Google reCAPTCHA, hCaptcha and Cloudflare
-   Turnstile. A captcha must fetch a token from its own host *before the form will
-   send*, so enquiries fail permanently from China even after the page has finished
-   loading. Commercially this usually outranks every speed finding: the page looks
-   fine and the buyer still cannot reach you.
-5. **Consent and chat widgets** — OneTrust, Cookiebot, Iubenda, Intercom, Zendesk,
-   Drift, HubSpot, Tawk.to. Two problems at once: they load from hosts with no
-   mainland presence, and they occupy first-screen area, which runs into Baidu's
-   requirement that main content fill 50%+ of the mobile first screen.
-6. **Analytics coverage** — flags a site running only GA/GTM with no Baidu Tongji:
-   Chinese traffic is invisible, so neither the problem nor the fix is measurable.
-7. **Secondary** — cache headers, Chinese font stack, on-page ICP filing, Chinese
-   social presence.
+3. **All external hosts in the HTML and the CSS** — the stylesheets are fetched and
+   scanned for `url()` and `@import`, so a Google Font pulled in from CSS, or a
+   `srcset` image on a foreign CDN, is caught. Split into blocked and slow.
+4. **Hosts named in the site's own JS bundles** — a partial remedy for resources
+   the HTML never mentions. A Supabase, Firebase, HubSpot or Zapier endpoint that
+   the form writes to shows up here. The script cannot tell whether the host is on
+   the form path; a network capture from a mainland browser settles that.
+5. **Form submission** — captchas (Google reCAPTCHA, hCaptcha, Cloudflare
+   Turnstile) and `<form action>` hosts. A captcha must fetch a token from its own
+   host *before the form will send*, so enquiries fail permanently from China even
+   after the page has finished loading. Commercially this outranks every speed
+   finding: the page looks fine and the buyer still cannot reach you.
+6. **Consent and chat widgets** — OneTrust, Cookiebot, Iubenda, Intercom, Zendesk,
+   Drift, HubSpot, Tawk.to. They load from hosts with no mainland presence, and
+   they occupy first-screen area that Baidu measures.
+7. **Analytics coverage** — GA/GTM only, Chinese analytics, or nothing.
+8. **Crawler access** — robots.txt per Chinese crawler (Baiduspider, Bytespider,
+   Sogou, 360, Yisou, Petal), every `Sitemap:` line fetched with a Baiduspider user
+   agent, URL count and host of the sitemap entries, and a Baiduspider-agent probe
+   of the first three sitemap URLs with challenge-page detection. This is the
+   check that catches a bot-mitigation layer serving crawlers a 429 or a
+   checkpoint page while browsers pass.
+9. **Page signals** — `<html lang>`, `content-language` header and meta, meta
+   robots and `X-Robots-Tag`, viewport, the 移动适配 declaration
+   (`applicable-device` / `mobile-agent`), canonical host, and Baidu registration
+   traces (`baidu-site-verification` meta, push script).
+10. **Secondary** — cache headers, Chinese font stack in HTML or CSS, on-page ICP
+    filing, Chinese social presence.
 
-Reading the result:
+Reading the result: it prints a FAIL and WARN list, not a score. A failing
+sitemap probe, a captcha, a canonical on another host or a `noindex` each outrank
+any number of warnings. Confirm from a mainland browser session before the finding
+enters a deliverable.
 
-- **BLOCKED + RENDER-BLOCKING** — fix first; it can hang the page.
-- **BLOCKED, not render-blocking** — the feature silently fails, the page still
-  draws. Analytics and tracking pixels sit here.
-- **SLOW** — loads eventually, adds seconds. Worth self-hosting.
-
-The score counts categories passed, not severity. One render-blocking Google script
-matters more than four warnings.
+What it cannot see: anything injected at runtime by a tag manager or consent
+script, actual mainland timing, and what Baidu received from its own IP range.
 
 ## Commonly blocked hosts
 
@@ -104,13 +116,27 @@ Amplitude, Sentry), scheduling and forms (Calendly, Typeform), Stripe, Auth0, an
 edge platforms without mainland nodes (CloudFront by default, Akamai — mainland
 presence reported ended 2026-06-30 — Vercel).
 
-The three categories that matter most, in order of commercial damage:
+**Form and API endpoints** — Supabase (Cloudflare-fronted), Firebase (Google),
+Formspree, Zapier webhooks, Airtable, HubSpot forms API, Cloudflare Workers and
+Pages, Netlify, Heroku, Render, Fly. These are not on the page; they are where the
+form's POST goes. Cloudflare's standard network has no mainland presence (only the
+Enterprise China Network via JD Cloud does, and it needs an ICP filing), so a
+stateful POST is exposed to mid-connection resets that a page load survives.
+
+The categories that matter most, in order of commercial damage:
 
 | Category | Why it ranks here |
 |---|---|
-| **Captcha in the form path** | The form silently never sends. The page looks perfect. Permanent lost enquiries |
+| **Captcha or foreign-only endpoint in the form path** | The form silently never sends, or sends intermittently by province. The page looks perfect. Lost enquiries nobody can see |
+| **Crawler-facing URLs behind a challenge** | Sitemap and canonical URLs that return 429 or a checkpoint page to non-browser clients. Zero index, whatever the content |
 | **Render-blocking in `<head>`** | 30–60 s white screen, or an instant load with broken fonts — depending on province |
 | **Consent / chat widgets** | Load slowly *and* consume the first screen, which Baidu measures |
+
+On **recaptcha.net**: it is Google's documented workaround domain for regions
+where google.com is unreachable, and it did work from the mainland for years. It
+has been reported blocked across checked regions since late 2022 and intermittent
+since. A client who "already switched to recaptcha.net" still has the problem;
+the tool flags it with that note.
 
 The tool holds the current table and matches subdomains by suffix. Treat it as a
 starting point that needs periodic refresh, not a settled list — providers change
@@ -187,6 +213,14 @@ visitors get the redirect. Giving an agency this one instruction prevents most
 Use this as a gap-analysis grid: requirement → what the site does today → verdict.
 Most foreign brands fail on configuration, not construction — and items 2, 4 and 8
 are each usually a single setting.
+
+Two configuration defects recur often enough to check by name: a bot-mitigation
+layer (Vercel, Cloudflare, Akamai) on the apex or on the canonical host that
+challenges every non-browser client, and a sitemap or canonical set pointing at a
+host other than the one that serves the page. Either gives a zero index with a
+perfectly built site. For moving between `.com/zh/`, apex and `www`, follow the
+migration steps in [baidu-resource-platform.md](baidu-resource-platform.md),
+section 5.
 
 ## Claims to refuse
 

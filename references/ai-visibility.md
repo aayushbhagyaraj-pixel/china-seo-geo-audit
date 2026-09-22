@@ -14,11 +14,39 @@ cannot be compared to each other or to a later re-test.
 | Doubao / 豆包 | ByteDance | Volcengine developer search MCP |
 | Kimi | Moonshot | the Kimi platform API (search / search_pro / fetch) |
 | Yuanbao / 元宝 | Tencent | TokenHub Chat/Responses protocols |
+| 文小言 (ERNIE consumer app, renamed) | Baidu | the ERNIE API; the in-SERP answer below |
+| **Baidu AI answer inside the SERP** (百度AI搜索 / 智能回答) | Baidu | organic rank on the same page; the 文小言 app. It is a third surface: neither a chat app nor a blue link, and it sits above organic results |
+| 夸克 (Quark) | Alibaba | the Qwen/通义 app; it is a separate AI-search product with its own retrieval |
+| 智谱清言 (ChatGLM) | Zhipu | the GLM API |
+| 海螺 (Hailuo) | MiniMax | the MiniMax API |
+
+Choose the three platforms for a panel from this table by the buyer's likely
+habit, and say why. DeepSeek, Doubao and the Baidu in-SERP answer are a defensible
+default for a B2B industrial buyer in 2026; record the choice as proposed.
 
 A developer API's documented search parameters never disclose the consumer app's
 ranking, publisher weights or answer behaviour. An Alibaba-hosted DeepSeek and
 native DeepSeek are different surfaces. Supporting search in both API and app does
 not establish parity of rankings, sources or answers.
+
+## Access — settle this before scoping the phase
+
+Most Chinese consumer assistants require a **+86 mobile number** and real-name
+registration, and several refuse foreign numbers outright. Web versions may allow
+a few guest prompts; those runs must be logged as guest-state and are not
+comparable with signed-in runs.
+
+Options, in order of preference:
+
+1. The client's China team runs the panel from a mainland network on a mainland
+   account, following this protocol, and hands over the run log and screenshots.
+2. A mainland colleague or partner does the same.
+3. A guest or foreign-registered session, clearly labelled, for direction only.
+
+Record for every run: the account type, the network location (a VPN in the path
+changes retrieval and must be stated), the device, and the app version. If none of
+the options exists, the phase is **blocked**. Say so; do not present three guest
+prompts as a measurement.
 
 ## Isolation rules — non-negotiable
 
@@ -69,6 +97,13 @@ Three independent sessions per platform gives 30 × 3 platforms × 3 repeats = *
 completed answers**. This is a proposed workload adapted to scope and access — not
 an evidence-backed universal minimum, and not a representative sample of all users.
 Pending and failed runs do not count toward that denominator.
+
+**Two tiers.** A first audit normally runs a **quick scan**: 10 prompts (2 branded,
+4 unbranded discovery, 2 technical, 2 comparison) × 3 platforms × 1 fresh session.
+It establishes direction and surfaces identity errors; it does not produce a
+quotable rate. The **full panel** above is the scoped follow-on and the baseline
+for re-tests. State the tier in the deliverable. Never quote a percentage from the
+quick scan.
 
 Branded, cooperation and comparison prompts must **not** inflate the unbranded
 recommendation denominator. Keep the groups separate throughout.
@@ -136,6 +171,7 @@ Record settings that were not available rather than guessing them.
 | Citation support | Checked cited claims supported by the linked source / checked cited claims |
 | Entity confusion | Successful answers confusing business divisions / scored successful answers |
 | Competitor mention share | A competitor's mentions / all counted brand mentions — count each brand once per answer |
+| Ordinal position | For answers that present brands in an explicit order (numbered, ranked, "first choice"): the brand's position and the number of brands listed. Report median position and share of first-position answers, over ordered answers only. Unordered lists have no position; do not infer one from reading order |
 
 Before testing, **declare in writing**:
 

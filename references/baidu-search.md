@@ -7,7 +7,7 @@ recommend, not just how you phrase it.
 
 | | Google | Baidu |
 |---|---|---|
-| hreflang | supported | **ignored entirely** |
+| hreflang | supported | **not supported** — every current source agrees; verify against Baidu's own documentation before stating it as permanent |
 | Language signal | hreflang | **`content-language` meta + separate domain** |
 | canonical | supported | supported |
 | JavaScript | rendered | render crawler exists (`Baiduspider-render/2.0`), but handling is unreliable — server-render critical content. See [technical-onpage.md](technical-onpage.md) |
@@ -40,8 +40,12 @@ Where the client has access, authenticated **Baidu Search Resource Platform**
 - Crawl diagnosis — inspect the content the crawler actually received, and access
   failures. Historic quota figures in circulating documentation require current
   verification in the owner's UI.
-- Indexing and submission tools.
-- Traffic and keyword data.
+- Indexing and submission tools: 主动推送, sitemap, 普通收录 / 快速收录 quotas,
+  移动适配, 改版工具, 死链提交.
+- 流量与关键词: impressions, clicks and rank for queries where the site appeared.
+
+The levers themselves, what each does and how to audit them without access, are
+in [baidu-resource-platform.md](baidu-resource-platform.md).
 
 Primary references — all useful, all dated, so label them historical official
 guidance rather than current behaviour:
@@ -57,6 +61,12 @@ Baiduspider indexes only 200 KB. Do not turn a historic diagnostic limit into a
 universal production crawler limit.
 
 ## SERP observation
+
+A Baidu result page is ads (竞价), 品牌专区, Baidu's own property cards (阿拉丁:
+百科, 知道, 图片, 文库, 爱采购, 精选笔记), 百家号 articles and increasingly an AI
+summary, and then organic results. Report rank with what sits above it, per
+[keyword-rank-tracking.md](keyword-rank-tracking.md), and use
+`scripts/baidu_serp.py` for the observed table where DataForSEO access exists.
 
 - Record **desktop and mobile separately** — they differ.
 - Keep SEM strictly separate from organic results. A paid placement is not a rank.

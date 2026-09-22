@@ -278,6 +278,13 @@ it enters a deliverable.
 For legal hosting requirements, consult current authoritative rules. Do not issue a
 blanket legal conclusion in an SEO report.
 
+Data protection is the other compliance line an SEO audit crosses without
+noticing: a contact form that sends a mainland user's name and phone number to a
+server abroad is a PIPL cross-border transfer. The triggers (PIPL, 数据安全法,
+网络安全法, 等保 2.0, 电子商务法) are listed in
+[china-b2b-surfaces.md](china-b2b-surfaces.md), section 7. Flag them with the
+owner; leave the conclusion to counsel.
+
 ## Do not recommend these — discontinued
 
 | Product | Status |

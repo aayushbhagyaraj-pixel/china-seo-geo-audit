@@ -25,7 +25,7 @@ exhausted quota or a bot check produces a **blocked** row, never an absence find
 2. Reproducible direct observation for a specified brand, query, location and time.
 3. Client exports with a known period and row grain.
 4. Transparent independent studies, carrying their sample size and limitations.
-5. Agency articles, NotebookLM syntheses and older client reports — **hypotheses to
+5. Agency articles, research-tool syntheses and older client reports — **hypotheses to
    validate**, never conclusions to repeat.
 
 A new title or a recent retrieval date does not prove recent publication. Record
