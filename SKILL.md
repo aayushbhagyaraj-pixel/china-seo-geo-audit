@@ -22,6 +22,21 @@ page never finished loading, the form never sent, the redirect threw the visitor
 back to Europe, or Baidu was handed a sitemap of URLs that return a challenge page.
 Audit the chain in order. A passing step never establishes the next one.
 
+## Self-improvement — the user's suggestions become part of this skill
+
+Whenever the user gives a suggestion, correction or "we should also…" during or
+after an audit, **update this skill in the same session**, without asking:
+
+1. Add a dated bullet to **Lessons learned** (bottom of this file): what was
+   suggested, why, and the client it came from.
+2. If it changes *how* the audit is done, also edit the phase or reference file it
+   belongs to, so the next run does it by default (not only as a note).
+3. Apply it to the current audit straight away and update the report.
+4. Say in one line at the end of your reply which file you changed.
+
+The skill lives in `~/.claude/skills/china-seo-geo-audit` (a git repo, symlinked
+into the other profiles). Commit only when the user asks.
+
 ## The four outcomes — measure separately, never merge
 
 | Outcome | The question | Never inferred from |
@@ -97,6 +112,14 @@ Then establish what a mainland network actually did, with BOCE or ITDOG against 
 status, full redirect chain, per-node and per-carrier results, and the tool's own
 definitions of its timing fields.
 
+**Mainland speed is mandatory and uses the free China-based tools.** Follow
+[references/mainland-speed-tests.md](references/mainland-speed-tests.md): 17CE,
+BOCE, ITDOG (quick + slow test / full screenshot) and chinaz, on the homepage, a
+product page and the form page, **plus each blocked third-party resource URL on its
+own** (Google Fonts, reCAPTCHA, Maps, the image CDN, the form POST host). Lighthouse
+run from Europe is a **proxy for page weight only**. Never report it as "load time"
+or compare it to Baidu's 2 s / 3 s rule without saying it was measured abroad.
+
 Traps that have produced wrong conclusions on real audits:
 
 - **Ping is not HTTP.** A healthy ping to a CDN edge proves ICMP answered. A site
@@ -164,6 +187,12 @@ Three things to establish, in order:
 python3 scripts/baidu_serp.py --keywords-file kw.txt --brand example.cn \
     --device desktop,mobile --out rank_YYYY-MM-DD
 ```
+
+The API fetch runs on baidu.com with location 2156 (China) and `zh_CN`, not from
+the analyst's country. Index facts (which host Baidu stores, which pages rank) do
+not depend on where you sit. City targeting of ads and small local rank shifts do.
+Say this in the report. Ask one mainland colleague for a private-window screenshot
+of 2–3 brand queries to confirm, and label it observed (mainland, manual).
 
 Report organic position **and** absolute position with what sits above (ads,
 品牌专区, 阿拉丁 cards, 百家号, AI summary). Record the brand SERP as a finding:
@@ -263,3 +292,10 @@ completion criteria rather than invented dates. Do not promise ranking, citation
 revenue uplift. Close with an explicit remaining-data list naming each blocker and
 who holds the key: owner analytics, platform exports, AI runs pending, mainland
 browser tests, approved specifications, lead outcomes.
+
+## Lessons learned
+
+- 2026-10-05 (client: Italian design brand, .cn site): `china_check.py` flagged pages as CHALLENGE because their HTML contains the string "recaptcha"; verify any CHALLENGE with a manual Baiduspider-UA fetch. It also probes only the first 3 `Sitemap:` lines, so a shared multi-domain robots.txt can hide the right sitemap (sitemapcn.xml was 7th); probe the target host's own sitemap by hand. Root URLs that redirect off-domain get analysed as the destination site, so re-run on the deep Chinese URL. Lighthouse headless needs `--max-wait-for-load=90000` and a sequential run, or it returns NO_FCP. For a renamed or migrated site, compare the host of owned Baidu results (old .it/.com vs .cn); it is the fastest migration signal. Always SERP-test the brand's Chinese name from Baike alongside the Latin name.
+- 2026-10-05 (same client, user suggestion): mainland speed must come from the free China tools (17CE, BOCE, ITDOG slow/full-screenshot, chinaz), not Lighthouse from Italy, which only proves page weight. Made it a mandatory step in Phase 1 and added `references/mainland-speed-tests.md`. The user also asked whether SERP results depend on searching from Italy: explain location 2156 up front in the report.
+- 2026-10-05 (user request): added the Self-improvement section. Every user suggestion is written into this skill in the same session.
+- 2026-10-05 (same client, founder challenged three claims, two were weak): (a) "not visible" claims need depth: re-run category keywords with `--depth 30` (3 pages) before saying a brand is absent. (b) Before blaming the Great Firewall, run a global control at the same minute (check-host.net API: `check-http?host=<url>&max_nodes=25`). The client's server went down worldwide during the China tests, so the "81 of 92 failed" result was not China-specific. (c) Do not fire BOCE, 17CE, chinaz and ITDOG within minutes of each other on a small origin; ~500 probe requests may trip its protection. Space them out and run one global control per run. (d) DataForSEO's AI-summary flag missed a Baidu AI answer visible in a manual screenshot: always capture 3 manual Baidu screenshots (brand, Chinese name, category) as slide references. (e) Verify behaviour claims such as "the redirect follows a cookie" with a test before writing them.

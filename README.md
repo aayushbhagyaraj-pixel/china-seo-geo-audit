@@ -95,6 +95,7 @@ green ping test means almost nothing.
 ```
 SKILL.md                                 Phases, outcomes, instruments, the rules that get broken most
 references/technical-access.md           Reachability testing, blocked hosts, architecture grid
+references/mainland-speed-tests.md       Free China speed tools (17CE, BOCE, ITDOG, chinaz), global control
 references/technical-onpage.md           Baidu's published technical and on-page rules
 references/baidu-search.md               Baidu behaviour, crawlers, SERP observation
 references/baidu-resource-platform.md    Submission, 移动适配, migration, proxies without access
